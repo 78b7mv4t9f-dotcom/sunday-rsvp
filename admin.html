@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Sunday RSVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green: #2E7D52; --green-light: #E8F5EE; --green-mid: #4CAF78;
+      --red: #C0392B; --red-light: #FDECEB;
+      --blue: #1A5F8A; --blue-light: #E8F2F9;
+      --amber: #B45309; --amber-light: #FEF3C7;
+      --gray: #6B7280; --gray-light: #F3F4F6;
+      --border: #E5E7EB; --text: #1F2937;
+      --radius: 14px; --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Nunito', sans-serif; background: #F0F7F4; min-height: 100vh; }
+
+    .topbar {
+      background: white; border-bottom: 1px solid var(--border);
+      padding: 14px 24px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 10;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-left span { font-size: 20px; }
+    .topbar-left h1 { font-size: 18px; font-weight: 800; color: var(--text); }
+    .topbar-left p { font-size: 12px; color: var(--gray); margin-top: 1px; }
+    .btn-refresh {
+      padding: 8px 16px; border-radius: 10px; border: 1.5px solid var(--green);
+      background: transparent; color: var(--green); font-size: 13px; font-weight: 700;
+      font-family: 'Nunito', sans-serif; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-refresh:hover { background: var(--green-light); }
+
+    .content { padding: 24px 20px; max-width: 860px; margin: 0 auto; }
+
+    .week-nav {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .week-nav label { font-size: 13px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.04em; }
+    select {
+      padding: 9px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 15px; font-family: 'Nunito', sans-serif; background: white;
+      color: var(--text); cursor: pointer; min-width: 220px;
+    }
+    select:focus { outline: none; border-color: var(--green-mid); }
+
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card {
+      background: white; border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      padding: 16px; text-align: center;
+    }
+    .stat-card .num { font-size: 32px; font-weight: 800; }
+    .stat-card .lbl { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+    .stat-yes .num { color: var(--green); }
+    .stat-no .num { color: var(--red); }
+    .stat-total .num { color: var(--blue); }
+
+    .section-title { font-size: 14px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+
+    .rsvp-table { width: 100%; border-collapse: collapse; background: white; border-radius: var(--radius); overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+    .rsvp-table thead th { background: var(--gray-light); font-size: 12px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+    .rsvp-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+    .rsvp-table tbody tr:last-child { border-bottom: none; }
+    .rsvp-table tbody tr:hover { background: var(--gray-light); }
+    .rsvp-table td { padding: 12px 16px; font-size: 15px; color: var(--text); }
+    .rsvp-table td.muted { font-size: 12px; color: var(--gray); }
+
+    .pill { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .pill-yes { background: var(--green-light); color: var(--green); }
+    .pill-no { background: var(--red-light); color: var(--red); }
+
+    .empty-state { text-align: center; padding: 48px 24px; }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state p { font-size: 15px; color: var(--gray); }
+
+    .loading-state { text-align: center; padding: 48px 24px; }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-banner { background: var(--red-light); color: var(--red); border-radius: 10px; padding: 14px 18px; font-size: 14px; font-weight: 600; margin-bottom: 16px; display: none; }
+
+    .config-banner {
+      background: var(--amber-light); border: 1.5px solid #FCD34D; border-radius: 12px;
+      padding: 18px; margin-bottom: 24px;
+    }
+    .config-banner h3 { font-size: 15px; font-weight: 800; color: var(--amber); margin-bottom: 4px; }
+    .config-banner p { font-size: 13px; color: #92400E; line-height: 1.6; }
+
+    .print-btn { padding: 8px 16px; border-radius: 10px; border: 1.5px solid var(--gray); background: transparent; color: var(--gray); font-size: 13px; font-weight: 700; font-family: 'Nunito', sans-serif; cursor: pointer; }
+    .print-btn:hover { background: var(--gray-light); }
+    .top-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+
+    @media (max-width: 500px) {
+      .rsvp-table td:nth-child(3), .rsvp-table th:nth-child(3) { display: none; }
+      .content { padding: 16px 12px; }
+    }
+    @media print {
+      .topbar, .btn-refresh, .print-btn, .week-nav, .config-banner { display: none !important; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <span>🌟</span>
+    <div>
+      <h1>Sunday Program — Staff View</h1>
+      <p>RSVP history by week</p>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="print-btn" onclick="window.print()">🖨 Print</button>
+    <button class="btn-refresh" onclick="loadData()">↻ Refresh</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <div class="config-banner" id="config-banner" style="display:none;">
+    <h3>⚙️ Setup required</h3>
+    <p>Open <code>admin.html</code> and <code>index.html</code> in a text editor and replace <strong>YOUR_GOOGLE_APPS_SCRIPT_URL_HERE</strong> with your deployed Apps Script URL. See <code>SETUP.md</code> for step-by-step instructions.</p>
+  </div>
+
+  <div class="error-banner" id="error-banner"></div>
+
+  <div class="top-row">
+    <div class="week-nav">
+      <label>Week of Sunday:</label>
+      <select id="week-select" onchange="renderWeek()">
+        <option value="">— Select a week —</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="stats-row" id="stats-row" style="display:none;">
+    <div class="stat-card stat-yes"><div class="num" id="count-yes">0</div><div class="lbl">Attending</div></div>
+    <div class="stat-card stat-no"><div class="num" id="count-no">0</div><div class="lbl">Not coming</div></div>
+    <div class="stat-card stat-total"><div class="num" id="count-total">0</div><div class="lbl">Total RSVPs</div></div>
+  </div>
+
+  <div id="list-area">
+    <div class="loading-state"><div class="spinner"></div><p style="color:var(--gray);font-size:14px;">Loading RSVPs…</p></div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIGURATION ─────────────────────────────────────────────
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdLMuwSzBzJ5udPXnvi2EDt6fQx4egUwpi5MwYktYOsb5DAuX-nv9jskmyZb4IYNpclQ/exec';
+  // ─────────────────────────────────────────────────────────────
+
+  let allData = [];
+
+  async function loadData() {
+    if (SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+      document.getElementById('config-banner').style.display = 'block';
+      document.getElementById('list-area').innerHTML = '';
+      return;
+    }
+    document.getElementById('list-area').innerHTML = '<div class="loading-state"><div class="spinner"></div><p style="color:var(--gray);font-size:14px;">Loading RSVPs…</p></div>';
+    document.getElementById('stats-row').style.display = 'none';
+
+    try {
+      const res = await fetch(`${SCRIPT_URL}?action=getAll`);
+      const data = await res.json();
+      allData = data.rows || [];
+      populateWeeks();
+      renderWeek();
+      document.getElementById('error-banner').style.display = 'none';
+    } catch (err) {
+      document.getElementById('error-banner').textContent = 'Could not load data. Check your script URL or try refreshing.';
+      document.getElementById('error-banner').style.display = 'block';
+      document.getElementById('list-area').innerHTML = '';
+    }
+  }
+
+  function getUniqueSundays() {
+    const dates = [...new Set(allData.map(r => r.sundayDate))];
+    return dates.sort((a, b) => b.localeCompare(a));
+  }
+
+  function populateWeeks() {
+    const sel = document.getElementById('week-select');
+    const sundays = getUniqueSundays();
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Select a week —</option>';
+    sundays.forEach(d => {
+      const label = formatSundayDate(d);
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    });
+    if (sundays.length > 0) {
+      sel.value = current && sundays.includes(current) ? current : sundays[0];
+    }
+  }
+
+  function formatSundayDate(dateStr) {
+    const d = new Date(dateStr + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function renderWeek() {
+    const week = document.getElementById('week-select').value;
+    const rows = week ? allData.filter(r => r.sundayDate === week) : [];
+    const statsRow = document.getElementById('stats-row');
+
+    if (!week) {
+      statsRow.style.display = 'none';
+      document.getElementById('list-area').innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Select a week above to view RSVPs.</p></div>';
+      return;
+    }
+
+    const yes = rows.filter(r => r.attending === 'yes');
+    const no = rows.filter(r => r.attending === 'no');
+    document.getElementById('count-yes').textContent = yes.length;
+    document.getElementById('count-no').textContent = no.length;
+    document.getElementById('count-total').textContent = rows.length;
+    statsRow.style.display = 'grid';
+
+    if (rows.length === 0) {
+      document.getElementById('list-area').innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No RSVPs recorded for this week.</p></div>';
+      return;
+    }
+
+    const sorted = [...rows].sort((a, b) => {
+      if (a.attending !== b.attending) return a.attending === 'yes' ? -1 : 1;
+      return a.caregiver.localeCompare(b.caregiver);
+    });
+
+    document.getElementById('list-area').innerHTML = `
+      <p class="section-title">RSVPs for ${formatSundayDate(week)}</p>
+      <table class="rsvp-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Parent / Caregiver</th>
+            <th>Participant</th>
+            <th>Response</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sorted.map((r, i) => `
+            <tr>
+              <td class="muted">${i + 1}</td>
+              <td>${esc(r.caregiver)}</td>
+              <td>${esc(r.participant)}</td>
+              <td><span class="pill pill-${r.attending}">${r.attending === 'yes' ? 'Attending' : 'Not coming'}</span></td>
+              <td class="muted">${formatTime(r.timestamp)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  function formatTime(ts) {
+    if (!ts) return '—';
+    try {
+      return new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    } catch { return ts; }
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  loadData();
+</script>
+</body>
+</html>

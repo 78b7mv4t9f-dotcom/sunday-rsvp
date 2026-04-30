@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sunday RSVP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --green: #2E7D52;
+      --green-light: #E8F5EE;
+      --green-mid: #4CAF78;
+      --red: #C0392B;
+      --red-light: #FDECEB;
+      --blue: #1A5F8A;
+      --blue-light: #E8F2F9;
+      --gray: #6B7280;
+      --gray-light: #F3F4F6;
+      --border: #E5E7EB;
+      --text: #1F2937;
+      --radius: 14px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: #F0F7F4;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 24px 16px 48px;
+    }
+    .container { width: 100%; max-width: 480px; }
+    .logo-area { text-align: center; margin-bottom: 28px; }
+    .logo-area .icon { font-size: 44px; margin-bottom: 6px; }
+    .logo-area h1 { font-size: 26px; font-weight: 800; color: var(--green); }
+    .logo-area p { font-size: 14px; color: var(--gray); margin-top: 4px; }
+
+    .window-badge {
+      display: flex; align-items: center; gap: 8px; justify-content: center;
+      font-size: 13px; font-weight: 700; padding: 7px 16px;
+      border-radius: 20px; margin-bottom: 20px; width: fit-content; margin-inline: auto;
+    }
+    .badge-open { background: var(--green-light); color: var(--green); }
+    .badge-closed { background: var(--red-light); color: var(--red); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-open { background: var(--green-mid); animation: pulse 2s infinite; }
+    .dot-closed { background: var(--red); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px 24px;
+      margin-bottom: 16px;
+    }
+    .sunday-label {
+      font-size: 17px; font-weight: 700; color: var(--text);
+      margin-bottom: 20px; text-align: center;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .sunday-label span { color: var(--green); }
+
+    .field { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 700; color: var(--gray); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    input[type="text"] {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 16px;
+      font-family: 'Nunito', sans-serif;
+      color: var(--text);
+      background: white;
+      transition: border-color 0.2s;
+    }
+    input[type="text"]:focus { outline: none; border-color: var(--green-mid); }
+    input[type="text"]::placeholder { color: #C4CAD3; }
+
+    .radio-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .radio-card {
+      position: relative; cursor: pointer;
+      border: 2px solid var(--border); border-radius: 12px;
+      padding: 14px 12px; text-align: center;
+      transition: all 0.18s; user-select: none;
+    }
+    .radio-card:hover { border-color: var(--green-mid); background: var(--green-light); }
+    .radio-card input { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-card .rc-icon { font-size: 26px; margin-bottom: 4px; }
+    .radio-card .rc-label { font-size: 14px; font-weight: 700; color: var(--text); }
+    .radio-card .rc-sub { font-size: 11px; color: var(--gray); margin-top: 2px; }
+    .radio-card.selected-yes { border-color: var(--green); background: var(--green-light); }
+    .radio-card.selected-yes .rc-label { color: var(--green); }
+    .radio-card.selected-no { border-color: var(--red); background: var(--red-light); }
+    .radio-card.selected-no .rc-label { color: var(--red); }
+
+    .btn {
+      width: 100%; padding: 14px;
+      border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer; transition: all 0.18s;
+      letter-spacing: 0.02em;
+    }
+    .btn-primary { background: var(--green); color: white; margin-top: 6px; }
+    .btn-primary:hover { background: #235F3E; }
+    .btn-primary:disabled { background: #B0C4BB; cursor: not-allowed; }
+    .btn-primary.loading { opacity: 0.7; cursor: wait; }
+
+    .success-card {
+      background: white; border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 36px 24px;
+      text-align: center;
+    }
+    .success-card .big-icon { font-size: 52px; margin-bottom: 12px; }
+    .success-card h2 { font-size: 22px; font-weight: 800; color: var(--green); margin-bottom: 8px; }
+    .success-card p { font-size: 15px; color: var(--gray); line-height: 1.6; }
+    .success-card .another { margin-top: 20px; font-size: 14px; color: var(--blue); cursor: pointer; font-weight: 700; text-decoration: underline; }
+
+    .closed-card {
+      background: white; border-radius: var(--radius);
+      box-shadow: var(--shadow); padding: 36px 24px;
+      text-align: center;
+    }
+    .closed-card .big-icon { font-size: 48px; margin-bottom: 12px; }
+    .closed-card h2 { font-size: 20px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+    .closed-card p { font-size: 14px; color: var(--gray); line-height: 1.7; }
+    .closed-card .reopens { margin-top: 14px; display: inline-block; background: var(--green-light); color: var(--green); font-size: 13px; font-weight: 700; padding: 6px 14px; border-radius: 20px; }
+
+    .error-msg { background: var(--red-light); color: var(--red); font-size: 13px; font-weight: 600; padding: 10px 14px; border-radius: 8px; margin-top: 10px; display: none; }
+    .footer { text-align: center; font-size: 12px; color: #B0B8C4; margin-top: 16px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="logo-area">
+    <div class="icon">🌟</div>
+    <h1>Sunday Program</h1>
+    <p>Weekly RSVP</p>
+  </div>
+
+  <div id="main-content"></div>
+
+  <p class="footer">Sign-up opens Monday &bull; Closes Wednesday at 8 pm</p>
+</div>
+
+<script>
+  // ── CONFIGURATION ──────────────────────────────────────────────
+  // After deploying your Google Apps Script, paste your Web App URL here:
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdLMuwSzBzJ5udPXnvi2EDt6fQx4egUwpi5MwYktYOsb5DAuX-nv9jskmyZb4IYNpclQ/exec';
+  // ──────────────────────────────────────────────────────────────
+
+  function getThisSunday() {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = day === 0 ? 7 : (7 - day);
+    const sun = new Date(now);
+    sun.setDate(now.getDate() + diff);
+    return sun;
+  }
+
+  function isWindowOpen() {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun,1=Mon,...,6=Sat
+    const hour = now.getHours();
+    if (day === 1 || day === 2) return true;        // Mon, Tue: open all day
+    if (day === 3 && hour < 20) return true;         // Wed before 8pm: open
+    return false;
+  }
+
+  function formatSunday(d) {
+    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  }
+
+  function sundayKey(d) {
+    return d.toISOString().split('T')[0];
+  }
+
+  let selectedAttending = null;
+  const sunday = getThisSunday();
+
+  function render() {
+    const area = document.getElementById('main-content');
+    if (!isWindowOpen()) {
+      area.innerHTML = `
+        <div class="closed-card">
+          <div class="big-icon">🔒</div>
+          <h2>RSVPs are closed</h2>
+          <p>Sign-up for <strong>${formatSunday(sunday)}</strong><br>has closed for this week.</p>
+          <span class="reopens">Sign-up reopens Monday morning</span>
+        </div>`;
+      return;
+    }
+    area.innerHTML = `
+      <div class="window-badge badge-open">
+        <div class="dot dot-open"></div>
+        Sign-up is open this week
+      </div>
+      <div class="card">
+        <div class="sunday-label">RSVP for <span>${formatSunday(sunday)}</span></div>
+        <div class="field">
+          <label for="caregiver">Parent / Caregiver Name</label>
+          <input type="text" id="caregiver" placeholder="Your full name" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="participant">Participant Name</label>
+          <input type="text" id="participant" placeholder="Child or participant's name" />
+        </div>
+        <div class="field">
+          <label>Attending this Sunday?</label>
+          <div class="radio-group">
+            <label class="radio-card" id="card-yes" onclick="pick('yes')">
+              <input type="radio" name="attending" value="yes" />
+              <div class="rc-icon">✅</div>
+              <div class="rc-label">Yes!</div>
+              <div class="rc-sub">We'll be there</div>
+            </label>
+            <label class="radio-card" id="card-no" onclick="pick('no')">
+              <input type="radio" name="attending" value="no" />
+              <div class="rc-icon">❌</div>
+              <div class="rc-label">Can't make it</div>
+              <div class="rc-sub">Not this week</div>
+            </label>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="submit-btn" onclick="submitRSVP()" disabled>Submit RSVP</button>
+        <div class="error-msg" id="error-msg"></div>
+      </div>`;
+  }
+
+  function pick(val) {
+    selectedAttending = val;
+    document.getElementById('card-yes').className = 'radio-card' + (val === 'yes' ? ' selected-yes' : '');
+    document.getElementById('card-no').className = 'radio-card' + (val === 'no' ? ' selected-no' : '');
+    document.getElementById('submit-btn').disabled = false;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  async function submitRSVP() {
+    const caregiver = document.getElementById('caregiver').value.trim();
+    const participant = document.getElementById('participant').value.trim();
+    if (!caregiver) { showError('Please enter the caregiver name.'); return; }
+    if (!participant) { showError('Please enter the participant name.'); return; }
+
+    const btn = document.getElementById('submit-btn');
+    btn.textContent = 'Submitting…';
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    const payload = {
+      action: 'rsvp',
+      caregiver,
+      participant,
+      attending: selectedAttending,
+      sundayDate: sundayKey(sunday),
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      showSuccess(selectedAttending === 'yes');
+    } catch (err) {
+      btn.textContent = 'Submit RSVP';
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      showError('Something went wrong. Please try again.');
+    }
+  }
+
+  function showSuccess(attending) {
+    const area = document.getElementById('main-content');
+    area.innerHTML = `
+      <div class="success-card">
+        <div class="big-icon">${attending ? '🎉' : '💛'}</div>
+        <h2>${attending ? "See you Sunday!" : "Thanks for letting us know!"}</h2>
+        <p>${attending
+          ? `We're looking forward to seeing you on <strong>${formatSunday(sunday)}</strong>!`
+          : `We'll miss you this week. See you next time!`
+        }</p>
+        <div class="another" onclick="render()">Submit another RSVP</div>
+      </div>`;
+  }
+
+  render();
+</script>
+</body>
+</html>
